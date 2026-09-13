@@ -17,5 +17,8 @@
     }
   },
   "packageManager": "pnpm@11.24.0",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "http-proxy-middleware": "^4.2.0"
+  }
 }
