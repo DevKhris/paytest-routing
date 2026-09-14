@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { config } from './config.js';
 import { logger } from './logger.js';
 import { LoadBalancer } from './loadbalancer.js';
@@ -45,6 +46,13 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(rateLimiter);
+app.use(cors({
+  origin: (process.env.CORS_ORIGINS || 'http://localhost:3001').split(','),
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id', 'x-api-key'],
+  credentials: true,
+  maxAge: 86400,
+}));
 app.use(authenticator);
 app.use(validator);
 
