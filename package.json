@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "bff": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -19,6 +20,10 @@
   "packageManager": "pnpm@11.24.0",
   "type": "module",
   "dependencies": {
-    "http-proxy-middleware": "^4.2.0"
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "http-proxy-middleware": "^4.2.0",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0"
   }
 }
