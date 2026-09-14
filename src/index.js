@@ -48,7 +48,23 @@ app.use(authenticator);
 app.use(validator);
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  const backends = balancer.status.map((b) => ({
+    id: b.id,
+    url: b.url,
+    healthy: b.breaker.state !== 'OPEN',
+    activeConnections: b.activeConnections,
+    circuitBreaker: b.breaker.state,
+  }));
+
+  const allHealthy = backends.every((b) => b.healthy);
+  const statusCode = allHealthy ? 200 : 503;
+
+  res.status(statusCode).json({
+    status: allHealthy ? 'ok' : 'degraded',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    backends,
+  });
 });
 
 app.use(createProxyRouter(balancer));
