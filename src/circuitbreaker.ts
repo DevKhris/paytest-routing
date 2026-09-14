@@ -1,16 +1,30 @@
 import { createChildLogger } from './logger.js';
 
-const STATES = { CLOSED: 'CLOSED', OPEN: 'OPEN', HALF_OPEN: 'HALF_OPEN' };
+const STATES = { CLOSED: 'CLOSED', OPEN: 'OPEN', HALF_OPEN: 'HALF_OPEN' } as const;
+type CircuitState = typeof STATES[keyof typeof STATES];
+
+export interface CircuitBreakerOptions {
+  failureThreshold?: number;
+  recoveryTime?: number;
+  halfOpenRequests?: number;
+}
+
+export interface CircuitBreakerMetrics {
+  state: CircuitState;
+  failureCount: number;
+  successCount: number;
+  lastFailureTime: number;
+}
 
 export class CircuitBreaker {
-  #state = STATES.CLOSED;
+  #state: CircuitState = STATES.CLOSED;
   #failureCount = 0;
   #successCount = 0;
   #lastFailureTime = 0;
-  #options;
-  #logger;
+  #options: Required<CircuitBreakerOptions>;
+  #logger: ReturnType<typeof createChildLogger>;
 
-  constructor(backendId, options = {}) {
+  constructor(backendId: number, options: CircuitBreakerOptions = {}) {
     this.#options = {
       failureThreshold: options.failureThreshold || 5,
       recoveryTime: options.recoveryTime || 30000,
@@ -19,11 +33,11 @@ export class CircuitBreaker {
     this.#logger = createChildLogger({ component: 'circuit-breaker', backendId });
   }
 
-  get state() {
+  get state(): CircuitState {
     return this.#state;
   }
 
-  get isOpen() {
+  get isOpen(): boolean {
     if (this.#state === STATES.OPEN) {
       if (Date.now() - this.#lastFailureTime >= this.#options.recoveryTime) {
         this.#transitionTo(STATES.HALF_OPEN);
@@ -34,7 +48,7 @@ export class CircuitBreaker {
     return false;
   }
 
-  #transitionTo(newState) {
+  #transitionTo(newState: CircuitState): void {
     this.#logger.info({ from: this.#state, to: newState }, 'Circuit state transition');
     this.#state = newState;
 
@@ -43,7 +57,7 @@ export class CircuitBreaker {
     }
   }
 
-  recordSuccess() {
+  recordSuccess(): void {
     if (this.#state === STATES.HALF_OPEN) {
       this.#successCount++;
       if (this.#successCount >= this.#options.halfOpenRequests) {
@@ -55,7 +69,7 @@ export class CircuitBreaker {
     }
   }
 
-  recordFailure() {
+  recordFailure(): void {
     this.#failureCount++;
     this.#lastFailureTime = Date.now();
 
@@ -69,7 +83,7 @@ export class CircuitBreaker {
     }
   }
 
-  get metrics() {
+  get metrics(): CircuitBreakerMetrics {
     return {
       state: this.#state,
       failureCount: this.#failureCount,

@@ -1,6 +1,64 @@
 const env = process.env;
 
-function parseBackends() {
+export interface Backend {
+  id: number;
+  url: string;
+  weight: number;
+  maxConnections: number;
+  timeout: number;
+}
+
+export interface CircuitBreakerOptions {
+  failureThreshold: number;
+  recoveryTime: number;
+  halfOpenRequests: number;
+}
+
+export interface HealthCheckOptions {
+  interval: number;
+  timeout: number;
+  path: string;
+}
+
+export interface ProxyOptions {
+  changeOrigin: boolean;
+  pathRewrite: Record<string, string>;
+  timeout: number;
+  proxyTimeout: number;
+}
+
+export interface AuthOptions {
+  enabled: boolean;
+  header: string;
+  secrets: string[];
+}
+
+export interface CacheOptions {
+  enabled: boolean;
+  ttl: number;
+}
+
+export interface RateLimitOptions {
+  windowMs: number;
+  max: number;
+  standardHeaders: boolean;
+  legacyHeaders: boolean;
+}
+
+export interface Config {
+  env: string;
+  port: number;
+  logLevel: string;
+  backends: Backend[];
+  rateLimit: RateLimitOptions;
+  circuitBreaker: CircuitBreakerOptions;
+  healthCheck: HealthCheckOptions;
+  proxy: ProxyOptions;
+  auth: AuthOptions;
+  cache: CacheOptions;
+}
+
+function parseBackends(): Backend[] {
   const raw = env.API_GATEWAY_BACKENDS || '';
   if (raw) {
     return raw.split(',').map((url, i) => ({
@@ -19,7 +77,7 @@ function parseBackends() {
   ];
 }
 
-const rawConfig = {
+const rawConfig: Config = {
   env: env.NODE_ENV || 'development',
   port: parseInt(env.API_GATEWAY_PORT || '3000', 10),
   logLevel: env.API_GATEWAY_LOG_LEVEL || 'info',
@@ -64,4 +122,4 @@ const rawConfig = {
   },
 };
 
-export const config = Object.freeze(rawConfig);
+export const config: Readonly<Config> = Object.freeze(rawConfig);

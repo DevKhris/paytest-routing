@@ -8,6 +8,7 @@ import { rateLimiter } from './middleware/rateLimiter.js';
 import { authenticator } from './middleware/authenticator.js';
 import { validator } from './middleware/validator.js';
 import { createProxyRouter } from './routes/proxy.js';
+import type { Request, Response, NextFunction } from 'express';
 
 const app = express();
 
@@ -17,18 +18,18 @@ const healthChecker = new HealthChecker(balancer, config.healthCheck);
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 
-app.use((req, res, next) => {
-  req.id = req.headers['x-request-id'] || crypto.randomUUID();
-  req.startTime = Date.now();
-  res.setHeader('X-Request-Id', req.id);
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  (req as any).id = req.headers['x-request-id'] || crypto.randomUUID();
+  (req as any).startTime = Date.now();
+  _res.setHeader('X-Request-Id', (req as any).id);
   next();
 });
 
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   res.on('finish', () => {
-    const latency = Date.now() - req.startTime;
+    const latency = Date.now() - (req as any).startTime;
     logger.info({
-      requestId: req.id,
+      requestId: (req as any).id,
       method: req.method,
       url: req.originalUrl,
       statusCode: res.statusCode,
@@ -47,7 +48,7 @@ app.use(rateLimiter);
 app.use(authenticator);
 app.use(validator);
 
-app.get('/health', (req, res) => {
+app.get('/health', (_req: Request, res: Response) => {
   const backends = balancer.status.map((b) => ({
     id: b.id,
     url: b.url,
@@ -69,7 +70,7 @@ app.get('/health', (req, res) => {
 
 app.use(createProxyRouter(balancer));
 
-app.use(errorHandler);
+app.use(errorHandler as any);
 
 healthChecker.start();
 
@@ -82,7 +83,7 @@ const server = app.listen(config.port, () => {
   }, 'BFF Gateway started');
 });
 
-function gracefulShutdown(signal) {
+function gracefulShutdown(signal: string) {
   logger.info({ signal }, 'Received shutdown signal');
 
   healthChecker.stop();

@@ -8,7 +8,7 @@ export const rateLimiter = rateLimit({
   standardHeaders: config.rateLimit.standardHeaders,
   legacyHeaders: config.rateLimit.legacyHeaders,
   keyGenerator: (req) => {
-    return ipKeyGenerator(req.ip || req.headers['x-forwarded-for'] || 'unknown');
+    return ipKeyGenerator(req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown');
   },
   handler: (req, _res, _next) => {
     throw new RateLimitError(`Rate limit exceeded for ${req.ip}`);
