@@ -13,9 +13,9 @@ function parseBackends() {
   }
 
   return [
-    { id: 0, url: env.BACKEND_1 || 'http://localhost:8001', weight: 1, maxConnections: 100, timeout: 30000 },
-    { id: 1, url: env.BACKEND_2 || 'http://localhost:8002', weight: 1, maxConnections: 100, timeout: 30000 },
-    { id: 2, url: env.BACKEND_3 || 'http://localhost:8003', weight: 1, maxConnections: 100, timeout: 30000 },
+    { id: 0, url: env.API_URL_1 || 'http://localhost:8001', weight: 1, maxConnections: 100, timeout: 30000 },
+    { id: 1, url: env.API_URL_2 || 'http://localhost:8002', weight: 1, maxConnections: 100, timeout: 30000 },
+    { id: 2, url: env.API_URL_3 || 'http://localhost:8003', weight: 1, maxConnections: 100, timeout: 30000 },
   ];
 }
 
