@@ -43,9 +43,6 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
 app.use(rateLimiter);
 app.use(cors({
   origin: (process.env.CORS_ORIGINS || 'http://localhost:3001').split(','),
